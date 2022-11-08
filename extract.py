@@ -1,3 +1,4 @@
+import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By       #importing libraries
 from selenium.webdriver.support.select import Select
@@ -29,7 +30,7 @@ def blockDriver(slink,dlink):
 
 # creating web driver
 def driverFun(link):
-    driver = webdriver.Chrome(executable_path='E:\chromedriver.exe') # get connection from Chrome using webdriver
+    driver = webdriver.Chrome(executable_path='C:\chromed\chromedriver.exe') # get connection from Chrome using webdriver
     try:
         driver.get(link)
     except WebDriverException:
@@ -40,13 +41,13 @@ def driverFun(link):
 # creating folders by defining functions
 # using os command-(mkdir)
 def MakeStateFolder(slink):
-    os.mkdir('E:\\download\\'+slink)
+    os.mkdir('C:\\webScrape\\'+slink)
 
 def MakeDistrictFolder(slink, dlink):
-    os.mkdir('E:\\download\\'+slink+'\\'+dlink)
+    os.mkdir('C:\\webScrape\\'+slink+'\\'+dlink)
 
 def MakeBlockFolder(slink, dlink, blink):
-    os.mkdir('E:\\download\\'+slink+'\\'+dlink+'\\'+blink)
+    os.mkdir('C:\\webScrape\\'+slink+'\\'+dlink+'\\'+blink)
 
 
 # taking webpage elements
@@ -69,12 +70,49 @@ def getBlock(dlink):
     return blockElements
 
 # Downloading files one by one in a specific location
+# def ExpentiturFun(slink, dlink, blink):
+#     # Next four line is to make a driver connection and set a specific location
+#     op = webdriver.ChromeOptions()
+#     p = {'download.default_directory': 'C:\\webScrape\\' +slink.text+'\\'+dlink.text+'\\'+blink.text}
+#     op.add_experimental_option('prefs', p)
+#     driver = webdriver.Chrome(executable_path='C:\chromed\chromedriver.exe', options=op)
+#     link = blink.get_attribute('href')
+#     driver.get(link)
+#     try: # using try block handling the Exception
+#         expenditure = driver.find_element(By.LINK_TEXT, 'Amount Sanctioned/Expenditure On Works')
+#         driver.get(expenditure.get_attribute('href'))
+#         # selecting dropdown elements in a website
+#         dropdown = driver.find_element(By.XPATH, '/html/body/form/div[3]/center/table/tbody/tr[1]/td[4]/b/font/select')
+#         panchayat = Select(dropdown)
+#         list = panchayat.options
+#         for i in range(2,len(list)):
+#             driver.get(link)
+#             try: # using try block handling the Exception
+#                 expenditure = driver.find_element(By.LINK_TEXT, 'Amount Sanctioned/Expenditure On Works')
+#                 driver.get(expenditure.get_attribute('href'))
+#                 dropdown = driver.find_element(By.XPATH, '/html/body/form/div[3]/center/table/tbody/tr[1]/td[4]/b/font/select')
+#                 panchayats = Select(dropdown)
+#                 panchayats.select_by_index(i)
+#                 driver.find_element(By.XPATH, '//*[@id="ctl00_ContentPlaceHolder1_Btnreport"]').click()
+#                 driver.find_element(By.XPATH, '//*[@id="ctl00_ContentPlaceHolder1_LinkButton1"]').click()
+#             except WebDriverException: # handling WebDriverException
+#                 logging.error("no : "+str(i)+" ==> no data found")
+#     except NoSuchElementException:# handling NoSuchElementException
+#         os.rmdir('C:\\webScrape\\'+slink.text+'\\'+dlink.text+'\\'+blink.text)
+#         logging.error("the Expenditure link service is unavailable")
+#         logging.info("removed :" + blink)
+
+
+# Downloading files one by one in a specific location
 def ExpentiturFun(slink, dlink, blink):
     # Next four line is to make a driver connection and set a specific location
     op = webdriver.ChromeOptions()
-    p = {'download.default_directory': 'E:\\download\\' +slink.text+'\\'+dlink.text+'\\'+blink.text}
+    p = {'download.default_directory': 'C:\\webScrape\\' +slink.text+'\\'+dlink.text+'\\'+blink.text}
     op.add_experimental_option('prefs', p)
-    driver = webdriver.Chrome(executable_path='E:\chromedriver.exe', options=op)
+    driver = webdriver.Chrome(executable_path='C:\chromed\chromedriver.exe', options=op)
+    Expentitureprocess(driver,slink,dlink,blink,1)
+
+def Expentitureprocess(driver,slink,dlink,blink,no):
     link = blink.get_attribute('href')
     driver.get(link)
     try: # using try block handling the Exception
@@ -84,6 +122,7 @@ def ExpentiturFun(slink, dlink, blink):
         dropdown = driver.find_element(By.XPATH, '/html/body/form/div[3]/center/table/tbody/tr[1]/td[4]/b/font/select')
         panchayat = Select(dropdown)
         list = panchayat.options
+        count = 2
         for i in range(2,len(list)):
             driver.get(link)
             try: # using try block handling the Exception
@@ -94,11 +133,28 @@ def ExpentiturFun(slink, dlink, blink):
                 panchayats.select_by_index(i)
                 driver.find_element(By.XPATH, '//*[@id="ctl00_ContentPlaceHolder1_Btnreport"]').click()
                 driver.find_element(By.XPATH, '//*[@id="ctl00_ContentPlaceHolder1_LinkButton1"]').click()
+                time.sleep(30)
+                if(i == 2):
+                    path1 = 'C:\\webScrape\\'+slink.text+'\\'+dlink.text+'\\'+blink.text+'\\Est_Expwork.xls'
+                else:
+                    m = i-count
+                    path1 = 'C:\\webScrape\\'+slink.text+'\\'+dlink.text+'\\'+blink.text+'\\Est_Expwork ('+str(m)+').xls'
+                if os.path.isfile(path1):
+                    print(str(i)+" download completed")
+                else:
+                    logging.info("      "+"no :"+str(i)+"File download is not completed")
+                    count +=1
+                    print("not completed")
             except WebDriverException: # handling WebDriverException
-                logging.error("no : "+str(i)+" ==> no data found")
+                logging.error("      no : "+str(i)+" ==> panchayat. no data found")
     except NoSuchElementException:# handling NoSuchElementException
-        os.rmdir('E:\\download\\'+slink+'\\'+dlink+'\\'+blink)
-        logging.error("the Expenditure link service is unavailable")
+        if(no >=5):
+            os.rmdir('C:\\webScrape\\'+slink.text+'\\'+dlink.text+'\\'+blink.text)
+            logging.error("        the Expenditure link service is unavailable")
+        else:
+            no += 1
+            Expentitureprocess(driver,slink,dlink,blink,no)
+
 
 # this codes is a main function
 logging.basicConfig(filename="log.txt", level=logging.INFO, filemode="w")
